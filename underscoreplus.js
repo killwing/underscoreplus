@@ -1,3 +1,5 @@
+// underscoreplus.js v0.1.0
+
 (function() {
 
 'use strict';
