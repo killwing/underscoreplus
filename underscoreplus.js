@@ -1,4 +1,4 @@
-// underscoreplus.js v0.1.1
+// underscoreplus.js v0.1.2
 
 (function() {
 
@@ -6,7 +6,7 @@
 
 var usp = {};
 
-// Duplicate strings
+// duplicate strings
 usp.dup = function(s, n) {
     var a = [];
     while (n--) {
@@ -15,17 +15,31 @@ usp.dup = function(s, n) {
     return a.join('');
 };
 
+// paramilized string using {num}, start from index 0
+usp.format = function(s) {
+    var args = arguments;
+    return s.replace(/\{(\d+)\}/g, function(m, i) {
+        return args[parseInt(i, 10)+1];
+    });
+};
 
-// Multi-line string using function definition + comment
-usp.mlstr = function(f) {  
+// paramilized string using {word}
+usp.template = function(s, t) {
+    return s.replace(/{(\w+)}/g, function(s, w) {
+        return t[w];
+    });
+}
+
+// multi-line string using function definition + comment
+usp.mlstr = function(f) {
     var lines = f.toString();
     return lines.substring(lines.indexOf("/*") + 2, lines.lastIndexOf("*/"));
 };
 
-// Delete specific values in a Array inplace
+// delete specific values in a Array inplace
 usp.erase = function(a, deleteValue) {
     for (var i = 0; i < a.length; i++) {
-        if (a[i] === deleteValue) {         
+        if (a[i] === deleteValue) {
             a.splice(i, 1);
             i--;
         }
@@ -46,7 +60,7 @@ usp.inherits = function(ctor, superCtor) {
     });
 };
 
-// Decodes a URL-encoded string into key/value pairs.
+// decode a URL-encoded string into key/value pairs
 usp.formDecode = function(encoded) {
     var params = encoded.split('&');
     var decoded = {};
@@ -61,7 +75,7 @@ usp.formDecode = function(encoded) {
     return decoded;
 };
 
-// Returns the querystring decoded into key/value pairs.
+// return the querystring decoded into key/value pairs
 usp.getQueryStringParams = function(s) {
     var urlparts = s.split('?');
     if (urlparts.length === 2) {
@@ -71,37 +85,70 @@ usp.getQueryStringParams = function(s) {
     }
 };
 
-// Encodes a value according to the RFC3986 specification.
+
+// encode special chars not done by encodeURIComponent
+usp.encodeURIComponentEx = function(s) {
+    return s.replace(/\!/g, '%21')
+            .replace(/\*/g, '%2A')
+            .replace(/'/g, '%27')
+            .replace(/\(/g, '%28')
+            .replace(/\)/g, '%29');
+};
+
+// decode special chars not done by decodeURIComponent
+usp.decodeURIComponentEx = function(s) {
+    return s.replace(/%21/g, '!')
+            .replace(/%2A/g, '*')
+            .replace(/%27/g, "'")
+            .replace(/%28/g, '(')
+            .replace(/%29/g, ')');
+};
+
+// encode a value according to the RFC3986 specification
 usp.toRfc3986 = function(val) {
-    return encodeURIComponent(val).replace(/\!/g, '%21')
-                                  .replace(/\*/g, '%2A')
-                                  .replace(/'/g, '%27')
-                                  .replace(/\(/g, '%28')
-                                  .replace(/\)/g, '%29');
+    return usp.encodeURIComponentEx(encodeURIComponent(val));
 };
 
-// Decodes a string that has been encoded according to RFC3986.
+// decode a string that has been encoded according to RFC3986
 usp.fromRfc3986 = function(val) {
-    var tmp = val.replace(/%21/g, '!')
-                 .replace(/%2A/g, '*')
-                 .replace(/%27/g, "'")
-                 .replace(/%28/g, '(')
-                 .replace(/%29/g, ')');
-    return decodeURIComponent(tmp);
+    return decodeURIComponent(usp.decodeURIComponentEx(val));
 };
 
-// Adds a key/value parameter to the supplied URL.
+// add a key/value parameter to the supplied URL
 usp.addURLParam = function(url, key, value) {
     var sep = (url.indexOf('?') >= 0) ? '&' : '?';
     return url + sep + usp.toRfc3986(key) + '=' + usp.toRfc3986(value);
 };
 
-// Regex escaping
+var HTML_ENTITIES = {
+    '>': '&gt;',
+    '<': '&lt;',
+    '"': '&quot;',
+    "'": '&#39;',
+    '&': '&amp;'
+};
+
+// HTML escaping
+usp.escapeHtml = function(text) {
+    return text && text.replace(/[&"'><]/g, function(character) {
+        return HTML_ENTITIES[character];
+    });
+};
+
+usp.unescapeHtml = function(text) {
+    return text.replace(/&gt;/g, '>')
+               .replace(/&lt;/g, '<')
+               .replace(/&quot;/g, '"')
+               .replace(/&#39;/g, "'")
+               .replace(/&amp;/g, '&');
+};
+
+// regex escaping
 usp.escapeRegex = function(re) {
     return re.replace(/[\-\[\]{}()*+?.,\\\^$|#\s]/g, "\\$&");
 };
 
-// Add blank target to URL
+// add blank target to URL
 usp.addBlankTarget = function(a) {
     return a.replace(/^<a /, '<a target="_blank" ');
 };
